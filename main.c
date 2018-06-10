@@ -16,29 +16,31 @@ typedef struct STACK
 }Stack;
 
 //Stack Functions
-Stack *initializeStack(int);
-int pop(Stack *);
-int push(Stack *, int);
-int isEmpty(Stack *);
-int isFull(Stack *);
-void printStack(Stack, int);
+Stack *initializeStack(int); //Stack'e yer ayýrmak için kullanýlýr.
+void freeStack(Stack *); //Stack'e ayýrýlan yeri serbest býrakýr.
+int pop(Stack *); //Stack'in en üstündeki deðeri almak için kullanýlýr.
+int push(Stack *, int); // Stack'e deðer atar.
+int isEmpty(Stack *); //Stack boþsa 1 deðeri döndürür.
+int isFull(Stack *); //Stack tamamen doluysa 1 deðeri döndürür.
+void printStack(Stack, int); //Stack'teki deðerleri ekrana yazdýrýr.
 
 //Variable Functions
-void setVariable(Variable *, char, int);
-Variable *initializeVariable();
-void addVariable(Variable **, char, int);
-void printVariables(Variable *);
-int contains(Variable *, char);
-int getVariableValue(Variable *, char);
+Variable *initializeVariable(); //Deðiþkenlerin tutulduðu linkli listeyi oluþturur.
+void setVariable(Variable *, char, int); //Daha önceden oluþturulmuþ bir deðiþkene deðer atar.
+void addVariable(Variable **, char, int); //Yeni deðiþken oluþturur.
+void printVariables(Variable *); //Varolan deðiþkenleri ekrana yazdýrýr.
+int contains(Variable *, char); //Parametre olarak alýnan deðiþkenin varolup olmadýðýný kontrol eder.
+int getVariableValue(Variable *, char); //Parametre olarak alýnan deðer eðer daha önce oluþturulmuþsa deðerini döndürür.
+void freeVariables(Variable *); //Deðiþkenler için ayrýlan yeri serbest býrakýr.
 
 //General Functions
-char *infixToPostfix(Stack *, char *);
-int solvePostfix(char *, Stack *, Variable *);
-void solveFromFile(char *, Stack *, Variable *);
+char *infixToPostfix(Stack *, char *); //Verilen infix ifadeyi postfix'e dönüþtürür ve geri döndürür.
+int solvePostfix(char *, Stack *, Variable *); //Verilen postfix ifadenin deðerini hesaplar.
+void solveFromFile(char *, Stack *, Variable *); //Dosyadan alýnan formülleri tek tek çözer.
 
-int stringToInt(char *, int *, char);
-int stringSize(char *);
-void printCurrentValues(char *, int, Stack *);
+int stringToInt(char *, int *, char); //Verilen string ifadenin tamsayý karþýlýðýný döndürür.
+int stringSize(char *); //Verilen stringin uzunluðunu hesaplar.
+void printCurrentValues(char *, int, Stack *); //Postfix ifadenin ve stack'in son deðerlerini ekrana yazdýrýr.
 
 int main()
 {
@@ -46,6 +48,9 @@ int main()
 	Variable *vars = initializeVariable();
 	
 	solveFromFile("input.txt", s, vars);
+	
+	freeStack(s);
+	freeVariables(vars);
 	
 	return 0;
 }
@@ -118,7 +123,6 @@ int solvePostfix(char *postfix, Stack *st, Variable *vars)
 		{
 			temp = getVariableValue(vars, postfix[i]);
 			push(st, temp);
-			//printf("\n%c<-%d", postfix[i], temp);
 		}
 		else if(postfix[i] == '+')
 		{
@@ -172,7 +176,7 @@ char *infixToPostfix(Stack *st, char *infix)
 	char *postfix = (char*)malloc(sizeof(char) * size * 2);
 	for(i = 0; i < size * 2; i++)
 		postfix[i] = ' ';
-	for(i = 0; i < 4; i++)
+	for(i = 0; i < 3; i = i + 2)
 		postfix[i] = infix[i];
 	
 	int j = 4;
@@ -196,10 +200,19 @@ char *infixToPostfix(Stack *st, char *infix)
 		else if(infix[i] < 58 && infix[i] > 47)
 		{
 			postfix[j++] = '!';
-			while(infix[i] != ' ')
+			while(infix[i] < 58 && infix[i] > 47)
 				postfix[j++] = infix[i++];
-			j++;
-			i--;
+			if(infix[i] == ' ')
+			{
+				j++;
+				i--;
+			}
+			else
+			{
+				printf("\n\n	!! Input istenen formatta degil.\n");
+				system("PAUSE");
+				exit(1);
+			}
 		}
 		else if(infix[i] < 123 && infix[i] > 96)
 		{
@@ -461,4 +474,21 @@ void printCurrentValues(char *postfix, int postfixSize, Stack *st)
 			printf("%c", postfix[i]);
 	printf("\t\t");
 	printStack(*st, 0);
+}
+
+void freeStack(Stack *st)
+{
+	free(st->stack);
+	free(st);
+}
+
+void freeVariables(Variable *v)
+{
+	Variable *tmp;
+	while (v != NULL)
+    {
+       tmp = v;
+       v = v->next;
+       free(tmp);
+    }
 }
